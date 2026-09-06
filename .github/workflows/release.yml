@@ -89,11 +89,97 @@ jobs:
           mv ../PhoneCheck-unsigned.ipa ../phone-check-ios-unsigned.ipa
         working-directory: ios
 
+      - name: Import signing assets
+        if: ${{ secrets.IOS_P12_BASE64 != '' && secrets.IOS_PROFILE_BASE64 != '' && secrets.APPLE_TEAM_ID != '' && secrets.IOS_P12_PASSWORD != '' }}
+        env:
+          IOS_P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
+          IOS_PROFILE_BASE64: ${{ secrets.IOS_PROFILE_BASE64 }}
+          IOS_P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "$IOS_P12_BASE64" | base64 --decode > certificate.p12
+          echo "$IOS_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
+          PROFILE_UUID=$(security cms -D -i profile.mobileprovision | plutil -extract UUID raw -o - -)
+          KEYCHAIN_PATH="$RUNNER_TEMP/phone-check.keychain"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security import certificate.p12 -k "$KEYCHAIN_PATH" -P "$IOS_P12_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp profile.mobileprovision "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+          echo "PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
+        working-directory: ios
+
+      - name: Build signed iOS app
+        if: ${{ secrets.IOS_P12_BASE64 != '' && secrets.IOS_PROFILE_BASE64 != '' && secrets.APPLE_TEAM_ID != '' && secrets.IOS_P12_PASSWORD != '' }}
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          IOS_SIGNING_IDENTITY: ${{ secrets.IOS_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          if ! xcodebuild \
+            -project PhoneCheck.xcodeproj \
+            -scheme PhoneCheck \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/PhoneCheck.xcarchive \
+            archive \
+            CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_IDENTITY="${IOS_SIGNING_IDENTITY:-Apple Distribution}" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" > build.log 2>&1; then
+            tail -n 200 build.log >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+        working-directory: ios
+
+      - name: Export signed IPA
+        if: ${{ secrets.IOS_P12_BASE64 != '' && secrets.IOS_PROFILE_BASE64 != '' && secrets.APPLE_TEAM_ID != '' && secrets.IOS_P12_PASSWORD != '' }}
+        env:
+          IOS_EXPORT_METHOD: ${{ secrets.IOS_EXPORT_METHOD }}
+          IOS_SIGNING_IDENTITY: ${{ secrets.IOS_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          METHOD="${IOS_EXPORT_METHOD:-ad-hoc}"
+          cat > ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>$METHOD</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>signingCertificate</key>
+            <string>${IOS_SIGNING_IDENTITY:-Apple Distribution}</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.xq.phonecheck</key>
+              <string>$PROFILE_UUID</string>
+            </dict>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/PhoneCheck.xcarchive \
+            -exportPath build/export \
+            -exportOptionsPlist ExportOptions.plist
+          cp build/export/PhoneCheck.ipa build/phone-check-ios-signed.ipa
+          rm -f build/phone-check-ios-unsigned.ipa
+        working-directory: ios
+
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: phone-check-ios
-          path: ios/build/phone-check-ios-unsigned.ipa
+          path: ios/build/phone-check-ios-*.ipa
           if-no-files-found: error
 
   release:
@@ -101,6 +187,12 @@ jobs:
     needs: [android, ios]
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve version
+        id: version
+        run: |
+          VERSION="$(awk -F '"' '/versionName =/ {print $2; exit}' app/build.gradle.kts)"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Download Android artifact
         uses: actions/download-artifact@v4
         with:
@@ -118,8 +210,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v1.4
-          name: v1.4
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
           generate_release_notes: true
           files: |
             artifacts/android/*.apk
