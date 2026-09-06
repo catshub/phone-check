@@ -15,3 +15,9 @@ targets:
         CURRENT_PROJECT_VERSION: 4
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         SUPPORTS_MACCATALYST: NO
+
+schemes:
+  PhoneCheck:
+    build:
+      targets:
+        PhoneCheck: all

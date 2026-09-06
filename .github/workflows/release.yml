@@ -62,8 +62,8 @@ jobs:
             -scheme PhoneCheck \
             -configuration Release \
             -destination 'generic/platform=iOS' \
-            -archivePath build/PhoneCheck.xcarchive \
-            archive \
+            -derivedDataPath build \
+            build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
@@ -72,7 +72,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build/Payload
-          cp -R build/PhoneCheck.xcarchive/Products/Applications/PhoneCheck.app build/Payload/
+          cp -R build/Build/Products/Release-iphoneos/PhoneCheck.app build/Payload/
           cd build/Payload
           zip -qry ../PhoneCheck-unsigned.ipa .
           mv ../PhoneCheck-unsigned.ipa ../phone-check-ios-unsigned.ipa
