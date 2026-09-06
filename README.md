@@ -12,6 +12,7 @@
 - 通知和悬浮按钮都支持“跳微信”，点击后复制号码并启动微信。
 - 号码转化规则支持用户自定义：每行 `前缀=>替换内容`，替换内容留空则删除前缀，例如 `116451=>`。
 - 应用内支持检查 GitHub Releases 更新。
+- 检查到新版本后，Android 可通过国内镜像下载 APK；也可以回退到 GitHub 发布页。
 - 所有号码与资料保存在本机 `SharedPreferences`，没有网络上报。
 
 ## 构建
@@ -36,7 +37,16 @@ iOS 系统限制比 Android 更严格，来电身份识别不能完全复用 And
 
 ## 更新检查
 
-Android 和 iOS 都会请求 GitHub 的 `releases/latest` 接口，并比较 `tag_name` 与本地版本号。需要先在 GitHub 仓库创建 Release，版本号建议使用 `v1.2.0` 这类格式。
+Android 会请求 GitHub 的 `releases/latest` 接口，比较 `tag_name` 与本地版本号，并优先选择 Release 里的 `phone-check-{版本号}-debug.apk` 资产。下载时可走 `GitHubMirror` 中的国内镜像。需要先在 GitHub 仓库创建 Release，版本号建议使用 `v1.3.0` 这类格式。
+
+## CI Release
+
+推送 `v*` 标签或在 GitHub Actions 手动触发 `Build release packages` 后，工作流会构建：
+
+1. Android：可安装的 debug 签名 APK。
+2. iOS：未签名 `.ipa`。它只能作为构建产物，安装到真机前仍需要用你的 Apple 开发者证书重新签名。
+
+标签推送成功后，工作流会把两个产物一起上传到对应的 GitHub Release。
 
 ## 使用
 

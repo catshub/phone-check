@@ -21,6 +21,7 @@ import com.xq.phonecheck.identity.CallerIdentity
 import com.xq.phonecheck.identity.NumberRuleStore
 import com.xq.phonecheck.identity.UserDirectory
 import com.xq.phonecheck.update.UpdateChecker
+import com.xq.phonecheck.update.UpdateDownloader
 import com.xq.phonecheck.update.UpdateResult
 
 class MainActivity : AppCompatActivity() {
@@ -144,22 +145,32 @@ class MainActivity : AppCompatActivity() {
     private fun checkForUpdate() {
         UpdateChecker.check(this) { result ->
             when (result) {
-                is UpdateResult.UpdateAvailable -> showUpdateDialog(result.version, result.url)
+                is UpdateResult.UpdateAvailable -> showUpdateDialog(result)
                 UpdateResult.UpToDate -> showToast(getString(R.string.update_up_to_date))
                 is UpdateResult.Failure -> showToast(result.message)
             }
         }
     }
 
-    private fun showUpdateDialog(version: String, url: String) {
+    private fun showUpdateDialog(result: UpdateResult.UpdateAvailable) {
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.update_available_title))
-            .setMessage(version)
-            .setPositiveButton(getString(R.string.update_open)) { _, _ ->
-                runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+            .setMessage(result.version)
+            .setPositiveButton(getString(R.string.update_download_mirror)) { _, _ ->
+                result.apkUrl?.let { url ->
+                    UpdateDownloader.download(this, url, result.version)
+                } ?: run {
+                    openReleasePage(result.url)
+                }
             }
-            .setNegativeButton(getString(R.string.update_cancel), null)
+            .setNegativeButton(getString(R.string.update_open)) { _, _ ->
+                openReleasePage(result.url)
+            }
             .show()
+    }
+
+    private fun openReleasePage(url: String) {
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
     }
 
     private fun showToast(message: String) {

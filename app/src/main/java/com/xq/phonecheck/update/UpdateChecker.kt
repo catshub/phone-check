@@ -9,7 +9,11 @@ import java.net.URL
 
 sealed class UpdateResult {
     object UpToDate : UpdateResult()
-    data class UpdateAvailable(val version: String, val url: String) : UpdateResult()
+    data class UpdateAvailable(
+        val version: String,
+        val url: String,
+        val apkUrl: String? = null
+    ) : UpdateResult()
     data class Failure(val message: String) : UpdateResult()
 }
 
@@ -35,8 +39,10 @@ object UpdateChecker {
                 } else {
                     val body = connection.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(body)
-                    val latestVersion = json.optString("tag_name").removePrefix("v")
+                    val latestTag = json.optString("tag_name")
+                    val latestVersion = latestTag.removePrefix("v")
                     val releaseUrl = json.optString("html_url")
+                    val apkUrl = findApkAsset(json, latestTag)
                     val currentVersion = appContext.packageManager
                         .getPackageInfo(appContext.packageName, 0)
                         .versionName.orEmpty()
@@ -44,7 +50,7 @@ object UpdateChecker {
                     if (latestVersion.isBlank() || releaseUrl.isBlank()) {
                         UpdateResult.Failure("GitHub 没有发布信息")
                     } else if (isNewer(latestVersion, currentVersion)) {
-                        UpdateResult.UpdateAvailable(latestVersion, releaseUrl)
+                        UpdateResult.UpdateAvailable(latestVersion, releaseUrl, apkUrl)
                     } else {
                         UpdateResult.UpToDate
                     }
@@ -68,5 +74,26 @@ object UpdateChecker {
             if (latestValue != currentValue) return latestValue > currentValue
         }
         return false
+    }
+
+    private fun findApkAsset(release: JSONObject, latestTag: String): String? {
+        val assets = release.optJSONArray("assets") ?: return null
+        var firstApk: String? = null
+        var preferredApk: String? = null
+
+        for (index in 0 until assets.length()) {
+            val asset = assets.optJSONObject(index) ?: continue
+            val name = asset.optString("name")
+            val url = asset.optString("browser_download_url")
+            if (!name.endsWith(".apk") || url.isBlank()) continue
+
+            if (firstApk == null) firstApk = url
+            if (name == "phone-check-${latestTag.removePrefix("v")}-debug.apk") {
+                preferredApk = url
+                break
+            }
+        }
+
+        return preferredApk ?: firstApk
     }
 }

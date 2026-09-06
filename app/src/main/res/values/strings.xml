@@ -14,6 +14,7 @@
     <string name="floating_button_text">跳微信</string>
     <string name="check_update">检查更新</string>
     <string name="update_available_title">发现新版本</string>
+    <string name="update_download_mirror">国内镜像下载</string>
     <string name="update_open">打开发布页</string>
     <string name="update_cancel">取消</string>
     <string name="update_up_to_date">已是最新版本</string>
