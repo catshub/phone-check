@@ -54,10 +54,17 @@ jobs:
         run: xcodegen generate
         working-directory: ios
 
+      - name: Inspect generated project
+        run: |
+          xcodebuild -version | tee "$GITHUB_STEP_SUMMARY"
+          xcodebuild -list | tee -a "$GITHUB_STEP_SUMMARY"
+          find . -maxdepth 2 -type f -print | tee -a "$GITHUB_STEP_SUMMARY"
+        working-directory: ios
+
       - name: Build unsigned iOS archive
         run: |
           set -euo pipefail
-          xcodebuild \
+          if ! xcodebuild \
             -project PhoneCheck.xcodeproj \
             -scheme PhoneCheck \
             -configuration Release \
@@ -66,7 +73,10 @@ jobs:
             build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_IDENTITY="" > build.log 2>&1; then
+            tail -n 200 build.log >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
         working-directory: ios
 
       - name: Package unsigned IPA
