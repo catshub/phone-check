@@ -1,0 +1,17 @@
+name: PhoneCheck
+options:
+  bundleIdPrefix: com.xq
+targets:
+  PhoneCheck:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - PhoneCheck
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.xq.phonecheck
+        MARKETING_VERSION: "1.2"
+        CURRENT_PROJECT_VERSION: 3
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        SUPPORTS_MACCATALYST: NO

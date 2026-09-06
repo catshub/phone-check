@@ -1,0 +1,1 @@
+-keep class com.xq.phonecheck.phone.CallScreeningServiceImpl { *; }

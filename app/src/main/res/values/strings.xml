@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">来电身份识别</string>
+    <string name="caller_id_channel">来电识别通知</string>
+    <string name="permission_title">授权状态</string>
+    <string name="request_permissions">申请基础权限</string>
+    <string name="request_screening_role">设为默认来电识别应用</string>
+    <string name="directory_hint">每行一条：手机号,微信ID,昵称,备注</string>
+    <string name="save_directory">保存资料库</string>
+    <string name="rules_title">号码转化规则</string>
+    <string name="rules_hint">每行一条：前缀=>替换内容。替换内容留空则删除前缀，例如：116451=></string>
+    <string name="save_rules">保存转化规则</string>
+    <string name="request_overlay_permission">授权悬浮窗</string>
+    <string name="floating_button_text">跳微信</string>
+    <string name="check_update">检查更新</string>
+    <string name="update_available_title">发现新版本</string>
+    <string name="update_open">打开发布页</string>
+    <string name="update_cancel">取消</string>
+    <string name="update_up_to_date">已是最新版本</string>
+    <string name="clear_log">清空识别记录</string>
+    <string name="call_log_title">最近识别记录</string>
+    <string name="status_ready">等待来电</string>
+    <string name="open_wechat">打开微信查询</string>
+    <string name="wechat_jump_toast">号码已复制，请在微信搜索框粘贴</string>
+    <string name="wechat_not_installed">未找到微信</string>
+</resources>
