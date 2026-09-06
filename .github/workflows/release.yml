@@ -59,9 +59,9 @@ jobs:
           set -euo pipefail
           xcodebuild \
             -project PhoneCheck.xcodeproj \
-            -scheme PhoneCheck \
+            -target PhoneCheck \
             -configuration Release \
-            -destination 'generic/platform=iOS' \
+            -sdk iphoneos \
             -derivedDataPath build \
             build \
             CODE_SIGNING_ALLOWED=NO \
