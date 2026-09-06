@@ -46,6 +46,19 @@ Android 会请求 GitHub 的 `releases/latest` 接口，比较 `tag_name` 与本
 1. Android：可安装的 debug 签名 APK。
 2. iOS：未签名 `.ipa`。它只能作为构建产物，安装到真机前仍需要用你的 Apple 开发者证书重新签名。
 
+如果要在 CI 里直接导出已签名 iOS 包，请在仓库 Secrets 中配置：
+
+- `IOS_P12_BASE64`
+- `IOS_P12_PASSWORD`
+- `IOS_PROFILE_BASE64`
+- `APPLE_TEAM_ID`
+- `KEYCHAIN_PASSWORD`
+
+可选：
+
+- `IOS_EXPORT_METHOD`：默认 `ad-hoc`
+- `IOS_SIGNING_IDENTITY`：默认 `Apple Distribution`
+
 标签推送成功后，工作流会把两个产物一起上传到对应的 GitHub Release。
 
 ## 使用
