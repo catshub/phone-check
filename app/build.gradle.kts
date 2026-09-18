@@ -3,7 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-val appVersion: String = providers.gradleProperty("appVersion").getOrElse("1.4.2")
+val defaultAppVersion = "1.4.2"
+val appVersion: String = providers.gradleProperty("appVersion").getOrElse(defaultAppVersion)
 val signingStoreFile = providers.gradleProperty("signingStoreFile")
 val hasStableSigning = signingStoreFile.isPresent
 

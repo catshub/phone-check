@@ -33,7 +33,7 @@ jobs:
       - name: Resolve version
         id: version
         run: |
-          BASE_VERSION="$(awk -F '"' '/versionName =/ {print $2; exit}' app/build.gradle.kts)"
+          BASE_VERSION="$(awk -F '"' '/defaultAppVersion =/ {print $2; exit}' app/build.gradle.kts)"
           IS_BETA=false
           if git ls-remote --exit-code --tags origin "v${BASE_VERSION}" >/dev/null 2>&1; then
             if [[ "${GITHUB_EVENT_NAME}" != "push" || "${GITHUB_REF_TYPE}" != "tag" ]]; then
