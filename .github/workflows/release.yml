@@ -61,7 +61,7 @@ jobs:
           test -n "${APK_KEYSTORE_STORE_PASSWORD}"
           test -n "${APK_KEYSTORE_KEY_ALIAS}"
           test -n "${APK_KEYSTORE_KEY_PASSWORD}"
-          printf '%s' "${APK_KEYSTORE_BASE64}" | tr -d '[:space:]\'"'"'`' | base64 -d -i > /tmp/phone-check-keystore.jks
+          printf '%s' "${APK_KEYSTORE_BASE64}" | tr -d '[:space:]' | base64 -d -i > /tmp/phone-check-keystore.jks
           test -s /tmp/phone-check-keystore.jks
           if ! keytool -list -keystore /tmp/phone-check-keystore.jks \
             -storepass "$APK_KEYSTORE_STORE_PASSWORD" \
