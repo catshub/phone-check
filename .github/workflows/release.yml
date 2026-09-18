@@ -18,6 +18,11 @@ concurrency:
 jobs:
   android:
     runs-on: ubuntu-latest
+    env:
+      APK_KEYSTORE_BASE64: ${{ secrets.APK_KEYSTORE_BASE64 }}
+      APK_KEYSTORE_STORE_PASSWORD: ${{ secrets.APK_KEYSTORE_STORE_PASSWORD }}
+      APK_KEYSTORE_KEY_ALIAS: ${{ secrets.APK_KEYSTORE_KEY_ALIAS }}
+      APK_KEYSTORE_KEY_PASSWORD: ${{ secrets.APK_KEYSTORE_KEY_PASSWORD }}
     outputs:
       version: ${{ steps.version.outputs.version }}
       is_beta: ${{ steps.version.outputs.is_beta }}
@@ -49,12 +54,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Prepare stable signing key
-        if: ${{ secrets.APK_KEYSTORE_BASE64 != '' }}
-        env:
-          APK_KEYSTORE_BASE64: ${{ secrets.APK_KEYSTORE_BASE64 }}
-          APK_KEYSTORE_STORE_PASSWORD: ${{ secrets.APK_KEYSTORE_STORE_PASSWORD }}
-          APK_KEYSTORE_KEY_ALIAS: ${{ secrets.APK_KEYSTORE_KEY_ALIAS }}
-          APK_KEYSTORE_KEY_PASSWORD: ${{ secrets.APK_KEYSTORE_KEY_PASSWORD }}
+        if: ${{ env.APK_KEYSTORE_BASE64 != '' }}
         run: |
           echo "$APK_KEYSTORE_BASE64" | base64 --decode > /tmp/phone-check-keystore.jks
           echo "signingStoreFile=/tmp/phone-check-keystore.jks" >> "$GITHUB_ENV"
