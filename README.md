@@ -46,6 +46,8 @@ Android 会请求 GitHub 的 `releases/latest` 接口，比较 `tag_name` 与本
 
 Android：可安装的 debug 签名 APK。
 
+如果版本号没有变化但代码有新的推送，会自动额外生成 `版本号-beta-{构建序号}` 的 beta APK 和预发布 Release。
+
 iOS 暂不参与云端构建，保留本地 SwiftUI 工程。
 
 ## 使用

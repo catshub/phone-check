@@ -3,6 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val appVersion: String = providers.gradleProperty("appVersion").getOrElse("1.4.2")
+
 android {
     namespace = "com.xq.phonecheck"
     compileSdk = 34
@@ -12,7 +14,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 7
-        versionName = "1.4.2"
+        versionName = appVersion
     }
 
     buildTypes {
