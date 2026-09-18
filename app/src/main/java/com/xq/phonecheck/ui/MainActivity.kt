@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
     private lateinit var callLogText: TextView
     private lateinit var screeningButton: Button
+    private lateinit var resetScreeningButton: Button
     private lateinit var directoryInput: com.google.android.material.textfield.TextInputEditText
     private lateinit var rulesInput: com.google.android.material.textfield.TextInputEditText
 
@@ -54,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         statusText = findViewById(R.id.statusText)
         callLogText = findViewById(R.id.callLogText)
         screeningButton = findViewById(R.id.requestScreeningButton)
+        resetScreeningButton = findViewById(R.id.resetScreeningButton)
         directoryInput = findViewById(R.id.directoryInput)
         rulesInput = findViewById(R.id.rulesInput)
 
@@ -66,6 +68,10 @@ class MainActivity : AppCompatActivity() {
 
         screeningButton.setOnClickListener {
             requestScreeningRole()
+        }
+
+        resetScreeningButton.setOnClickListener {
+            openScreeningSettings()
         }
 
         findViewById<Button>(R.id.requestOverlayPermissionButton).setOnClickListener {
@@ -134,6 +140,24 @@ class MainActivity : AppCompatActivity() {
         screeningRoleLauncher.launch(intent)
     }
 
+    private fun openScreeningSettings() {
+        val intent = Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
+        val launched = runCatching { startActivity(intent) }.isSuccess
+
+        if (!launched) {
+            runCatching {
+                startActivity(
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:$packageName")
+                    )
+                )
+            }
+        }
+
+        showToast(getString(R.string.reset_screening_hint))
+    }
+
     private fun requestOverlayPermission() {
         val intent = Intent(
             Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -196,6 +220,7 @@ class MainActivity : AppCompatActivity() {
         ).joinToString("，")
 
         statusText.text = permissionSummary
+        resetScreeningButton.isEnabled = screeningEnabled
         callLogText.text = CallerLogStore.read(this)
             .takeIf { it.isNotEmpty() }
             ?.joinToString("\n\n") { format(it) }

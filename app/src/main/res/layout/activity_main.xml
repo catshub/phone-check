@@ -40,6 +40,13 @@
             android:text="@string/request_screening_role" />
 
         <Button
+            android:id="@+id/resetScreeningButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/reset_screening_role" />
+
+        <Button
             android:id="@+id/requestOverlayPermissionButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
