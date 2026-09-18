@@ -38,7 +38,7 @@ iOS 系统限制比 Android 更严格，来电身份识别不能完全复用 And
 
 ## 更新检查
 
-Android 会请求 GitHub 的 `releases/latest` 接口，比较 `tag_name` 与本地版本号，并优先选择 Release 里的 `phone-check-{版本号}-debug.apk` 资产。下载时可走 `GitHubMirror` 中的国内镜像。需要先在 GitHub 仓库创建 Release，版本号建议使用 `v1.3.0` 这类格式。
+Android 会拉取 GitHub Releases 列表，同时纳入 beta Pre-release，按版本号比较后优先选择可更新的 APK。下载时可走 `GitHubMirror` 中的国内镜像。
 
 ## CI Release
 
