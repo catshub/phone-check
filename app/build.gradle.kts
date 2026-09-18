@@ -4,10 +4,23 @@ plugins {
 }
 
 val appVersion: String = providers.gradleProperty("appVersion").getOrElse("1.4.2")
+val signingStoreFile = providers.gradleProperty("signingStoreFile")
+val hasStableSigning = signingStoreFile.isPresent
 
 android {
     namespace = "com.xq.phonecheck"
     compileSdk = 34
+
+    signingConfigs {
+        if (hasStableSigning) {
+            create("stable") {
+                storeFile = file(signingStoreFile.get())
+                storePassword = providers.gradleProperty("signingStorePassword").getOrElse("")
+                keyAlias = providers.gradleProperty("signingKeyAlias").getOrElse("")
+                keyPassword = providers.gradleProperty("signingKeyPassword").getOrElse("")
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.xq.phonecheck"
@@ -18,9 +31,17 @@ android {
     }
 
     buildTypes {
+        debug {
+            if (hasStableSigning) {
+                signingConfig = signingConfigs.getByName("stable")
+            }
+        }
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (hasStableSigning) {
+                signingConfig = signingConfigs.getByName("stable")
+            }
         }
     }
 

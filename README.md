@@ -50,6 +50,15 @@ Android：可安装的 debug 签名 APK。
 
 iOS 暂不参与云端构建，保留本地 SwiftUI 工程。
 
+如果要让 CI APK 每次使用同一把签名钥匙，请在仓库 Secrets 中额外配置：
+
+- `APK_KEYSTORE_BASE64`
+- `APK_KEYSTORE_STORE_PASSWORD`
+- `APK_KEYSTORE_KEY_ALIAS`
+- `APK_KEYSTORE_KEY_PASSWORD`
+
+没有配置时仍会构建 APK，但 GitHub 每次会用临时签名，导致覆盖安装时提示“签名不同”。
+
 ## 使用
 
 1. 安装 APK，进入应用，授予通讯录、电话状态和通知权限。

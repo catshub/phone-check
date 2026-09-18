@@ -48,8 +48,33 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Prepare stable signing key
+        if: ${{ secrets.APK_KEYSTORE_BASE64 != '' }}
+        env:
+          APK_KEYSTORE_BASE64: ${{ secrets.APK_KEYSTORE_BASE64 }}
+          APK_KEYSTORE_STORE_PASSWORD: ${{ secrets.APK_KEYSTORE_STORE_PASSWORD }}
+          APK_KEYSTORE_KEY_ALIAS: ${{ secrets.APK_KEYSTORE_KEY_ALIAS }}
+          APK_KEYSTORE_KEY_PASSWORD: ${{ secrets.APK_KEYSTORE_KEY_PASSWORD }}
+        run: |
+          echo "$APK_KEYSTORE_BASE64" | base64 --decode > /tmp/phone-check-keystore.jks
+          echo "signingStoreFile=/tmp/phone-check-keystore.jks" >> "$GITHUB_ENV"
+          echo "signingStorePassword=$APK_KEYSTORE_STORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "signingKeyAlias=$APK_KEYSTORE_KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "signingKeyPassword=$APK_KEYSTORE_KEY_PASSWORD" >> "$GITHUB_ENV"
+
       - name: Build Android APK
-        run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug -PappVersion=${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          GRADLE_PROPS=(-PappVersion=${{ steps.version.outputs.version }})
+          if [[ -n "${signingStoreFile:-}" ]]; then
+            GRADLE_PROPS+=(
+              -PsigningStoreFile="$signingStoreFile"
+              -PsigningStorePassword="$signingStorePassword"
+              -PsigningKeyAlias="$signingKeyAlias"
+              -PsigningKeyPassword="$signingKeyPassword"
+            )
+          fi
+          ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug "${GRADLE_PROPS[@]}"
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v4
